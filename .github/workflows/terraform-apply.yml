@@ -1,0 +1,69 @@
+name: Terraform Apply Reusable Workflow
+
+on:
+  workflow_call:
+    inputs:
+      terraform_dir:
+        required: true
+        type: string
+        description: Directory containing Terraform configuration
+      terraform_version:
+        required: false
+        type: string
+        default: '1.5.2'
+        description: Terraform version to use
+      plan_file:
+        required: false
+        type: string
+        default: terraform.tfplan
+        description: Path to the Terraform plan file
+      aws_iam_role:
+        required: true
+        type: string
+        default: arn:aws:iam::747693303791:role/GithubActionsRole
+        description: AWS role to assume for deployment
+      aws_region:
+        required: true
+        type: string
+        default: us-east-1
+        description: AWS region for deployment
+        
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    permissions:
+        id-token: write
+        contents: read
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ inputs.terraform_version }}
+
+    - name: Configure AWS credentials
+      id: aws-creds
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.aws_iam_role }}
+        aws-region: ${{ inputs.aws_region }}
+
+    - name: Terraform Init
+      run: terraform init
+      working-directory: ${{ inputs.terraform_dir }}
+
+    - name: Terraform Validate
+      run: terraform validate
+      working-directory: ${{ inputs.terraform_dir }}
+
+    - name: Terraform Plan
+      run: terraform plan -out=${{ inputs.plan_file }}
+      working-directory: ${{ inputs.terraform_dir }}
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve ${{ inputs.plan_file }}
+      working-directory: ${{ inputs.terraform_dir }}
