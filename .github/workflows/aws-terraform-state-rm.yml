@@ -1,4 +1,4 @@
-name: Terraform Destroy Reusable Workflow
+name: Terraform Plan Reusable Workflow
 
 on:
   workflow_call:
@@ -27,6 +27,10 @@ on:
         type: string
         default: us-east-1
         description: AWS region for deployment
+      rm_resource:
+        required: true
+        type: string
+        description: Terraform resource to remove from state file
         
 jobs:
   terraform:
@@ -60,10 +64,6 @@ jobs:
       run: terraform validate
       working-directory: ${{ inputs.terraform_dir }}
 
-    - name: Terraform Plan Destroy
-      run: terraform plan -destroy -out=${{ inputs.plan_file }}
-      working-directory: ${{ inputs.terraform_dir }}
-
-    - name: Terraform Destroy
-      run: terraform destroy -auto-approve
+    - name: Terraform Plan
+      run: terraform state rm ${{ input.rm_resource }}
       working-directory: ${{ inputs.terraform_dir }}
