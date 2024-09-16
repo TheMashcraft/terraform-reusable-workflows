@@ -12,11 +12,6 @@ on:
         type: string
         default: '1.5.2'
         description: Terraform version to use
-      plan_file:
-        required: false
-        type: string
-        default: terraform.tfplan
-        description: Path to the Terraform plan file
       aws_iam_role:
         required: true
         type: string
@@ -65,5 +60,5 @@ jobs:
       working-directory: ${{ inputs.terraform_dir }}
 
     - name: Terraform Plan
-      run: terraform state rm ${{ input.rm_resource }}
+      run: terraform state rm ${{ inputs.rm_resource }}
       working-directory: ${{ inputs.terraform_dir }}
